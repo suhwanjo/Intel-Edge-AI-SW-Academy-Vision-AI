@@ -1,0 +1,32 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+  <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <div style="text-align: center;">
+      <h1>Webcam Page</h1>
+      <div id="webcam-container">
+        <img id="webcam-image" src="{% url 'webcam_feed' %}" alt="Webcam Feed">
+      </div>
+      <button id="stop-webcam-btn">Stop Webcam</button>
+    </div>
+  </div>
+
+<script>
+  document.getElementById('stop-webcam-btn').addEventListener('click', function() {
+    fetch("{% url 'stop_webcam' %}", {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: null
+    })
+    .then(function(response) {
+      window.location.href = "{% url 'board' %}";
+    })
+    .catch(function(error) {
+      console.error('Error:', error);
+    });
+  });
+</script>
+{% endblock %}
