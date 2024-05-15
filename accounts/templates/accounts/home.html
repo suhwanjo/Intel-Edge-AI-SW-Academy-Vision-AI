@@ -1,10 +1,22 @@
 {% extends 'blog/base.html' %}
+{% load static %}
 {% load bootstrap4 %}
 {% block content %}
-<div class="d-flex flex-column align-items-center">
-    <h1 class="mb-4">조르미 오나!</h1>
-    <h3><a href="signup" class="btn btn-primary btn-lg mb-3">회원가입</a></h3>
-    <h3><a href="login" class="btn btn-success btn-lg mb-3">로그인</a></h3>
-    <h3><a href="logout" class="btn btn-danger btn-lg">로그아웃</a></h3>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="text-center mb-4">
+                <img src="{% static 'images/main.png' %}" alt="조르미 이미지" class="img-fluid mb-4" style="max-width: 300px;">
+                <h1 class="mb-4">조르미 오나!</h1>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="d-flex flex-column align-items-end">
+                <h3><a href="signup" class="btn btn-primary btn-lg mb-3">회원가입</a></h3>
+                <h3><a href="login" class="btn btn-success btn-lg mb-3">로그인</a></h3>
+                <h3><a href="logout" class="btn btn-danger btn-lg">로그아웃</a></h3>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
