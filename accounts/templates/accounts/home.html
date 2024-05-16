@@ -1,22 +1,60 @@
-{% extends 'blog/base.html' %}
+<!DOCTYPE html>
 {% load static %}
-{% load bootstrap4 %}
-{% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-md-6">
-            <div class="text-center mb-4">
-                <img src="{% static 'images/main.png' %}" alt="조르미 이미지" class="img-fluid mb-4" style="max-width: 300px;">
-                <h1 class="mb-4">조르미 오나!</h1>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="d-flex flex-column align-items-end">
-                <h3><a href="signup" class="btn btn-primary btn-lg mb-3">회원가입</a></h3>
-                <h3><a href="login" class="btn btn-success btn-lg mb-3">로그인</a></h3>
-                <h3><a href="logout" class="btn btn-danger btn-lg">로그아웃</a></h3>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>조르미 오나</title>
+
+    <link rel="stylesheet" href="{% static 'bootstrap/bootstrap.min.css' %}?after" media="screen">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?after" media="screen">
+
+    <script src="https://kit.fontawesome.com/726bbd6862.js" crossorigin="anonymous"></script>
+
+    <style>
+        /* 배경 이미지 추가 */
+        body {
+            background-image: url('{% static 'images/main.png' %}');
+            background-size: cover;
+            background-position: center;
+            color: black; /* 원하는 색상으로 변경하세요 */
+
+        }
+    </style>
+
+</head>
+<body>
+
+{% include 'blog/navbar.html' %}
+
+<div class="find-btn">
+    <a href="/login" class="w-btn-outline w-btn-blue-outline" type="button" style="top:445px;">로그인</a>
+</div>
+<br>
+<div class="find-btn">
+    <a href="/signup" class="w-btn-outline w-btn-blue-outline" type="button" style="top:445px;">회원가입</a>
+</div>
+
+<section>
+    <div class="container">
+        <div class="text-light">
+            <h1 style="text-align: center; font-size:50px; font-weight: BOLD;" >조르미 오나</h1>
+            <p style="text-align: center;font-size: 30px;"> : 수업 태도/자세 모니터링 서비스 </p></br>
+            <div class="container-2">
+                <p id="text" style="  font-size: 15px text-decoration: underline;"></p>
+                <p id="text2" style="font-weight: bold;font-size: 16px text-decoration: underline font-size: 16px;"></p>
             </div>
         </div>
     </div>
+</section>
+
+<div class="fixed-bottom">
+<!--    여기 삭제함-->
 </div>
-{% endblock %}
+
+<script src="{% static 'css/main.js' %}"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+</body>
+</html>

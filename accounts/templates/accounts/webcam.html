@@ -1,32 +1,36 @@
 {% extends 'blog/base.html' %}
 
 {% block content %}
-  <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-    <div style="text-align: center;">
-      <h1>Webcam Page</h1>
-      <div id="webcam-container">
+  <div style="display: flex; justify-content: space-between; align-items: center; height: 100vh;">
+    <div style="width: 45%; text-align: center; margin-right: 50%;">
+      <h1>Web Cam</h1>
+      <div id="webcam-container" style="margin-top: 20px;">
         <img id="webcam-image" src="{% url 'webcam_feed' %}" alt="Webcam Feed">
+        <button id="stop-webcam-btn">Stop Webcam</button>
       </div>
-      <button id="stop-webcam-btn">Stop Webcam</button>
+    </div>
+    <div style="width: 45%; text-align: center;">
+      <h1>Dash Board</h1>
+      <!-- 여기에 다른 내용을 추가하세요 -->
     </div>
   </div>
 
-<script>
-  document.getElementById('stop-webcam-btn').addEventListener('click', function() {
-    fetch("{% url 'stop_webcam' %}", {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: null
-    })
-    .then(function(response) {
-      window.location.href = "{% url 'board' %}";
-    })
-    .catch(function(error) {
-      console.error('Error:', error);
+  <script>
+    document.getElementById('stop-webcam-btn').addEventListener('click', function() {
+      fetch("{% url 'stop_webcam' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: null
+      })
+      .then(function(response) {
+        window.location.href = "{% url 'board' %}";
+      })
+      .catch(function(error) {
+        console.error('Error:', error);
+      });
     });
-  });
-</script>
+  </script>
 {% endblock %}

@@ -1,10 +1,14 @@
 {% extends 'blog/base.html' %}
 
 {% block content %}
-  <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-    <div style="text-align: center;">
-      <h1>Board Page</h1>
-      <a href="{% url 'webcam' %}">Open Webcam</a>
+  <div style="display: flex; justify-content: space-between; align-items: center; height: 100vh;">
+    <div style="width: 45%; text-align: center;">
+      <h1>Web Cam</h1>
+      <button onclick="window.location.href='{% url 'webcam' %}'">Open Webcam</button>
+    </div>
+    <div style="width: 45%; text-align: center;">
+      <h1>Dash Board</h1>
+      <!-- 여기에 다른 내용을 추가하세요 -->
     </div>
   </div>
 {% endblock %}

@@ -1,8 +1,41 @@
 {% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>조르미 오나!</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'bootstrap/bootstrap.min.css' %}">
+
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif; /* 변경 가능한 폰트로 설정 */
+        }
+        /* 네비게이션 스타일 */
+        .navbar {
+            background-color: #007bff; /* 네비게이션 바 색상 */
+        }
+        .navbar-brand {
+            font-size: 1.5rem; /* 로고 텍스트 크기 */
+            font-weight: bold; /* 로고 텍스트 굵기 */
+        }
+        .navbar-nav .nav-item .nav-link {
+            color: #ffffff; /* 네비게이션 링크 색상 */
+            margin-right: 10px; /* 링크 간격 */
+        }
+        .navbar-nav .nav-item .nav-link:hover {
+            color: #f8f9fa; /* 호버 시 링크 색상 */
+        }
+    </style>
+</head>
+<body>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
         <a class="navbar-brand" href="#">
-            <!--<img src="{% static 'images/large.png' %}" alt="Logo" height="30">!>-->
             조르미 오나!
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,3 +65,9 @@
         </div>
     </div>
 </nav>
+
+<!-- Bootstrap JS -->
+<script src="{% static 'bootstrap/bootstrap.bundle.min.js' %}"></script>
+
+</body>
+</html>

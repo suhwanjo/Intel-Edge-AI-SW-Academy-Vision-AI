@@ -11,4 +11,6 @@ class BehaviorLog(models.Model):
     gaze_right_count = models.PositiveIntegerField(default=0)
     gaze_down_count = models.PositiveIntegerField(default=0)
     gaze_down_long_count = models.PositiveIntegerField(default=0)
+    pose_good = models.PositiveIntegerField(default=0)
+    pose_bad = models.PositiveIntegerField(default=0)
     timestamp = models.DateTimeField(auto_now_add=True)
