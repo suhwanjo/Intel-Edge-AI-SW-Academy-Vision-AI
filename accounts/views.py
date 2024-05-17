@@ -7,16 +7,19 @@ import cv2
 from django.http import StreamingHttpResponse
 from django.views.decorators import gzip
 import mediapipe as mp
-import time
+import time as pytime
 from ultralytics import YOLO
 import numpy as np
 from scipy.spatial import distance as dist
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import BehaviorLog
 from django.contrib.auth.models import User
 import pickle
-
+from datetime import datetime, time
+from .models import BehaviorLog
+from .forms import DateTimeForm
+from django.db.models import Sum
+from datetime import timedelta
 # Create your views here.
 
 
@@ -30,44 +33,42 @@ class VideoCamera(object):
         self.mp_drawing = mp.solutions.drawing_utils
         self.drawing_spec = self.mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
-        # Constants
+        # 졸음, 하품 관련 변수
         self.EAR_THRESHOLD = 0.25
-        self.MAR_THRESHOLD = 0.5  # Adjusted for more accurate detection
-        self.SECONDS_TO_COUNT = 3
-        self.YAWN_DURATION = 3  # 3 seconds for yawning count
+        self.MAR_THRESHOLD = 0.5
 
-        # Variables to track counts
         self.eye_closed_long_count = 0
-        self.yawn_count = 0
-        self.yawn_prev = 0
         self.eye_closed = False
         self.prev_eye_closed = False
-        self.yawning = False
-        self.yawn_start_time = None
         self.eye_closed_count = 0
+
+        self.yawn_count = 0
+        self.yawn_prev = 0
+        self.yawning = False
         self.yawn_frame_count = 0
 
-
-
         # Variables to track counts
-        self.DIRECTION_DURATION = 3  # 3 seconds for left, right count
-        self.EAR_DOWN_THRESHOLD = 0.30  # 아래를 볼 때  Threshold, 조정 필요
+        self.DIRECTION_DURATION = 3
+
         self.right_count = 0
         self.right_start_time = None
         self.bRight = False
+
         self.left_count = 0
         self.left_start_time = None
         self.bLeft = False
+
         self.down_count = 0
         self.down_start_time = None
         self.bDown = False
+
         self.down_cnt_dir = 0
         # Frame rate
         self.THRESHOLD_FRAMES = 30
 
-        self.last_save_time = time.time()
-        self.last_pose_inference_time = time.time()
-        self.save_interval = 20  # 5분 = 300초
+        self.last_save_time = pytime.time()
+        self.last_pose_inference_time = pytime.time()
+        self.save_interval = 20  # 저장 및 자세 추정 주기
         self.request = request
 
         self.jungjasae_count = 0
@@ -119,38 +120,13 @@ class VideoCamera(object):
             return None
 
         # 특정 시간 마다 로그 DB에 저장
-        start = time.time()
-        current_time = time.time()
+        start = pytime.time()
+        current_time = pytime.time()
         if current_time - self.last_save_time >= self.save_interval:
             self.save_behavior_log()
             self.last_save_time = current_time
 
-        # 임계값마다 포즈 추론
-        if current_time - self.last_pose_inference_time >= (self.save_interval / 2):
-            results = self.model(image, conf=0.7)
-            image = results[0].plot()
-            if results[0].keypoints is not None:
-                keypoints = results[0].keypoints.xy[0]
-            # YOLOv8-pose에서 얻은 keypoints가 유효한 경우
-            if keypoints is not None and keypoints.shape[0] == 17:
-                # 필요한 keypoints가 모두 검출된 경우
-                if keypoints[2, 1] != 0 and keypoints[4, 1] != 0 and keypoints[5, 1] != 0:
-                    # 추출한 좌표에서 필요한 y좌표 추출
-                    L_eye_y = keypoints[2, 1]  # 왼쪽 눈 y좌표
-                    L_ear_y = keypoints[4, 1]  # 왼쪽 귀 y좌표
-                    R_shoulder_y = keypoints[5, 1]  # 오른쪽 어깨 y좌표
 
-                    # KNN 모델로 자세 분류
-                    input_data = np.array([[L_eye_y, L_ear_y, R_shoulder_y]])
-                    pred = self.model_knn.predict(input_data)
-
-                    # 결과에 따라 count 증가
-                    if pred[0] == 1:
-                        self.jungjasae_count += 1
-                    else:
-                        self.gubujung_count += 1
-
-            self.last_pose_inference_time = current_time
 
         image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
         image.flags.writeable = False
@@ -185,14 +161,12 @@ class VideoCamera(object):
                 rightEAR = self.eye_aspect_ratio(rightEye)
                 ear = (leftEAR + rightEAR) / 2.0
 
-
                 # 입 랜드마크
                 mouthIndices = [57, 287, 0, 17]
                 mouth = [landmarks[i] for i in mouthIndices]
                 mouth = [(int(p.x * img_w), int(p.y * img_h)) for p in mouth]
                 # MAR 계산
                 mar = self.mouth_aspect_ratio(mouth)
-
 
                 # 졸음 인식 알고리즘
                 if ear < self.EAR_THRESHOLD:
@@ -247,7 +221,6 @@ class VideoCamera(object):
                     cv2.circle(image, point, 1, (255, 0, 0), -1)
                 cv2.putText(image, f"MAR: {mar:.2f}", (10, 260), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
-
                 # 시선 방향 인식 알고리즘
                 for idx, lm in enumerate(face_landmarks.landmark):
                     if idx in [33, 263, 1, 61, 291, 199]:
@@ -289,8 +262,8 @@ class VideoCamera(object):
                     if self.bDown: self.down_cnt_dir += 1; self.bDown = False
                     if not self.bLeft:
                         self.bLeft = True
-                        self.left_start_time = time.time()
-                    elif time.time() - self.left_start_time > self.DIRECTION_DURATION:
+                        self.left_start_time = pytime.time()
+                    elif pytime.time() - self.left_start_time > self.DIRECTION_DURATION:
                         self.left_count += 1
                         self.bLeft = False
                 elif y > 10:
@@ -299,8 +272,8 @@ class VideoCamera(object):
                     if self.bDown: self.down_cnt_dir += 1; self.bDown = False
                     if not self.bRight:
                         self.bRight = True
-                        self.right_start_time = time.time()
-                    elif time.time() - self.right_start_time > self.DIRECTION_DURATION:
+                        self.right_start_time = pytime.time()
+                    elif pytime.time() - self.right_start_time > self.DIRECTION_DURATION:
                         self.right_count += 1
                         self.bRight = False
                 elif x < -10:
@@ -309,8 +282,8 @@ class VideoCamera(object):
                     self.bRight = False
                     if not self.bDown:
                         self.bDown = True
-                        self.down_start_time = time.time()
-                    elif time.time() - self.down_start_time > self.DIRECTION_DURATION:
+                        self.down_start_time = pytime.time()
+                    elif pytime.time() - self.down_start_time > self.DIRECTION_DURATION:
                         self.down_count += 1
                         self.bDown = False
                 else:
@@ -330,9 +303,40 @@ class VideoCamera(object):
                 cv2.putText(image, "y: " + str(np.round(y, 2)), (10, 320), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255),
                             2)
                 cv2.putText(image, "z: " + str(np.round(z, 2)), (10, 350), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255),
+
                             2)
+        # 임계값마다 포즈 추론
+        if current_time - self.last_pose_inference_time >= (self.save_interval / 2):
+            results = self.model(image, conf=0.7)
+            #image = results[0].plot()
+            if results[0].keypoints is not None:
+                keypoints = results[0].keypoints.xy[0]
+            # YOLOv8-pose에서 얻은 keypoints가 유효한 경우
+            if keypoints is not None and keypoints.shape[0] == 17:
+                # 필요한 keypoints가 모두 검출된 경우
+                if keypoints[2, 1] != 0 and keypoints[4, 1] != 0 and keypoints[5, 1] != 0:
+                    # 추출한 좌표에서 필요한 y좌표 추출
+                    nose_y = keypoints[0, 1]  # 코 y좌표
+                    L_eye_y = keypoints[2, 1]  # 왼쪽 눈 y좌표
+                    L_ear_y = keypoints[4, 1]  # 왼쪽 귀 y좌표
+                    R_shoulder_y = keypoints[5, 1]  # 오른쪽 어깨 y좌표
 
+                    # KNN 모델로 자세 분류
+                    input_data = np.array([[nose_y, L_eye_y, L_ear_y, R_shoulder_y]])
+                    pred = self.model_knn.predict(input_data)
 
+                    # 결과에 따라 count 증가
+                    if pred[0] == 1:
+                        self.jungjasae_count += 1
+                    elif (pred[0] == 0 or pred[0] == 2) and text == "Looking Down":
+                        self.jungjasae_count += 1
+                    else:
+                        self.gubujung_count += 1
+                    # 정 자세                 -> 정 자세
+                    # 고개를 숙임 and 시선 아래 -> 정 자세
+                    # 구부정 and 시선 아래     -> 정 자세
+
+            self.last_pose_inference_time = current_time
 
         cv2.putText(image, f"Sleeping Count: {self.eye_closed_long_count}", (10, 380), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
                     (0, 0, 255), 2)
@@ -345,8 +349,10 @@ class VideoCamera(object):
                     f"Pose: Good:{self.jungjasae_count}, Bad:{self.gubujung_count}",(10, 20),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255),
                     2)
+
         ret, jpeg = cv2.imencode('.jpg', image)
         return jpeg.tobytes()
+
 
 def gen(camera):
     while True:
@@ -355,6 +361,7 @@ def gen(camera):
             break
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
 
 @login_required
 @gzip.gzip_page
@@ -366,23 +373,124 @@ def webcam_feed(request):
         print(e)
         pass
 
+
 def board_view(request):
     return render(request, 'accounts/board.html')
 
+
 def webcam_view(request):
     return render(request, 'accounts/webcam.html')
+
+
 def stop_webcam(request):
     try:
         del request.session['camera']
     except KeyError:
         pass
     return redirect('board')
+
+
+def get_period_time(period):
+    period_mapping = {
+        '': (time(9, 0), time(16, 50)),
+        '1': (time(9, 0), time(9, 50)),
+        '2': (time(10, 0), time(10, 50)),
+        '3': (time(11, 0), time(11, 50)),
+        '4': (time(13, 0), time(13, 50)),
+        '5': (time(14, 0), time(14, 50)),
+        '6': (time(15, 0), time(15, 50)),
+        '7': (time(16, 0), time(16, 50)),
+    }
+    return period_mapping.get(period)
+
+
+@login_required
+def dashboard_view(request):
+    if request.method == 'POST':
+        form = DateTimeForm(request.POST)
+        if form.is_valid():
+            date = form.cleaned_data['date']
+            period = form.cleaned_data.get('period')
+
+            logs = BehaviorLog.objects.filter(
+                user=request.user,
+                timestamp__date=date
+            )
+
+            if logs.exists():
+                # 5분 간격으로 데이터 가져오기
+                start_time, end_time = get_period_time(period) #
+
+                time_intervals = []
+                current_time = start_time
+                current_datetime = datetime.combine(date, current_time)
+                while current_datetime.time() <= end_time:
+                    time_intervals.append((current_datetime, current_datetime + timedelta(minutes=5)))
+                    current_datetime += timedelta(minutes=5)
+
+                aggregated_data = {
+                    'time_labels': [],
+                    'total_yawn': [],
+                    'total_sleepy': [],
+                    'total_gaze_left': [],
+                    'total_gaze_right': [],
+                    'total_gaze_down': [],
+                    'total_gaze_down_long': [],
+                    'total_pose_good': [],
+                    'total_pose_bad': [],
+                }
+
+                for start, end in time_intervals:
+                    # 해당 시간 범위 내의 데이터 가져오기
+                    interval_logs = logs.filter(timestamp__range=(start, end))
+
+                    # 해당 시간에 대한 행동 정보 합산
+                    total_yawn = interval_logs.aggregate(total_yawn=Sum('yawn_count'))['total_yawn'] or 0
+                    total_sleepy = interval_logs.aggregate(total_sleepy=Sum('sleepy_count'))['total_sleepy'] or 0
+                    total_gaze_left = interval_logs.aggregate(total_gaze_left=Sum('gaze_left_count'))['total_gaze_left'] or 0
+                    total_gaze_right = interval_logs.aggregate(total_gaze_right=Sum('gaze_right_count'))['total_gaze_right'] or 0
+                    total_gaze_down = interval_logs.aggregate(total_gaze_down=Sum('gaze_down_count'))['total_gaze_down'] or 0
+                    total_gaze_down_long = interval_logs.aggregate(total_gaze_down_long=Sum('gaze_down_long_count'))['total_gaze_down_long'] or 0
+                    total_pose_good = interval_logs.aggregate(total_pose_good=Sum('pose_good'))['total_pose_good'] or 0
+                    total_pose_bad = interval_logs.aggregate(total_pose_bad=Sum('pose_bad'))['total_pose_bad'] or 0
+
+                    # 결과를 aggregated_data에 추가
+                    aggregated_data['time_labels'].append(start.strftime('%H:%M'))
+                    aggregated_data['total_yawn'].append(total_yawn)
+                    aggregated_data['total_sleepy'].append(total_sleepy)
+                    aggregated_data['total_gaze_left'].append(total_gaze_left)
+                    aggregated_data['total_gaze_right'].append(total_gaze_right)
+                    aggregated_data['total_gaze_down'].append(total_gaze_down)
+                    aggregated_data['total_gaze_down_long'].append(total_gaze_down_long)
+                    aggregated_data['total_pose_good'].append(total_pose_good)
+                    aggregated_data['total_pose_bad'].append(total_pose_bad)
+
+                aggregated_data2 = {
+                    'total_yawn': sum(aggregated_data['total_yawn']),
+                    'total_sleepy': sum(aggregated_data['total_sleepy']),
+                    'total_gaze_left': sum(aggregated_data['total_gaze_left']),
+                    'total_gaze_right': sum(aggregated_data['total_gaze_right']),
+                    'total_gaze_down': sum(aggregated_data['total_gaze_down']),
+                    'total_gaze_down_long': sum(aggregated_data['total_gaze_down_long']),
+                    'total_pose_good': sum(aggregated_data['total_pose_good']),
+                    'total_pose_bad': sum(aggregated_data['total_pose_bad']),
+                }
+                return render(request, 'accounts/dashboard.html', {'form': form, 'aggregated_data': aggregated_data, 'aggregated_data2': aggregated_data2})
+            else:
+                # 데이터가 없을 때 처리
+                return render(request, 'accounts/dashboard.html', {'form': form, 'message': 'No data available for the selected date.'})
+    else:
+        form = DateTimeForm()
+        return render(request, 'accounts/dashboard.html', {'form': form})
+
+
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
     class Meta(UserCreationForm.Meta):
         model = User
         fields = UserCreationForm.Meta.fields + ('email',)
+
 
 # views.py
 def signup(request):

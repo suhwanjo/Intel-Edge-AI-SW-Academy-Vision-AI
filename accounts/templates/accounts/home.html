@@ -3,7 +3,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>조르미 오나</title>
+    <title>집피티</title>
 
     <link rel="stylesheet" href="{% static 'bootstrap/bootstrap.min.css' %}?after" media="screen">
     <link rel="stylesheet" href="{% static 'css/main.css' %}?after" media="screen">
@@ -16,45 +16,42 @@
             background-image: url('{% static 'images/main.png' %}');
             background-size: cover;
             background-position: center;
-            color: black; /* 원하는 색상으로 변경하세요 */
-
         }
     </style>
 
 </head>
 <body>
 
-{% include 'blog/navbar.html' %}
+{% if user.is_authenticated %}
+    <div class="find-btn">
+        <a href="/board" class="w-btn-outline w-btn-blue-outline" type="button" style="top:445px;">홈</a>
+    </div>
+    <br>
+    <div class="find-btn">
+        <a href="/logout" class="w-btn-outline w-btn-blue-outline" type="button" style="top:445px;">로그아웃</a>
+    </div>
+{% else %}
+    <div class="find-btn">
+        <a href="/login" class="w-btn-outline w-btn-blue-outline" type="button" style="top:445px;">로그인</a>
+    </div>
+    <br>
+    <div class="find-btn">
+        <a href="/signup" class="w-btn-outline w-btn-blue-outline" type="button" style="top:445px;">회원가입</a>
+    </div>
+{% endif %}
 
-<div class="find-btn">
-    <a href="/login" class="w-btn-outline w-btn-blue-outline" type="button" style="top:445px;">로그인</a>
-</div>
-<br>
-<div class="find-btn">
-    <a href="/signup" class="w-btn-outline w-btn-blue-outline" type="button" style="top:445px;">회원가입</a>
-</div>
 
 <section>
     <div class="container">
-        <div class="text-light">
-            <h1 style="text-align: center; font-size:50px; font-weight: BOLD;" >조르미 오나</h1>
-            <p style="text-align: center;font-size: 30px;"> : 수업 태도/자세 모니터링 서비스 </p></br>
             <div class="container-2">
+            <h1 style="text-align: center; font-size:50px; font-weight: BOLD;" >집피티</h1>
+            <p style="text-align: center;font-size: 30px;"> : 수업 태도/자세 모니터링 서비스 </p></br>
                 <p id="text" style="  font-size: 15px text-decoration: underline;"></p>
                 <p id="text2" style="font-weight: bold;font-size: 16px text-decoration: underline font-size: 16px;"></p>
             </div>
         </div>
-    </div>
 </section>
 
-<div class="fixed-bottom">
-<!--    여기 삭제함-->
-</div>
-
-<script src="{% static 'css/main.js' %}"></script>
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
 </body>
 </html>

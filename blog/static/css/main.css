@@ -32,6 +32,7 @@ button {
     font-weight: 600;
     transition: 0.25s;
     top: 460px;
+    color: black;
 }
 .w-btn-outline:hover {
     letter-spacing: 2px;
@@ -45,7 +46,7 @@ button {
 
 .w-btn-blue-outline {
     border: 3px solid #FFA500;
-    color: #d4dfe6;
+    color: black;
 }
 .w-btn-blue-outline:hover {
     background-color: #FFA500;
@@ -78,7 +79,15 @@ button {
 
 .container-2 {
   text-align: center;
+  color : black;
 }
+
+.text-light{
+   text-align: center;
+   color : blck;
+
+}
+
 .line_container{
       display: flex;
       justify-content: space-between;

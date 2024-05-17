@@ -1,0 +1,294 @@
+{% extends 'blog/base.html' %}
+[% load static %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4 mb-4">Behavior Log Dashboard</h1>
+    <form method="post" class="form-inline mb-4">
+        {% csrf_token %}
+        <div class="form-group mr-2">
+            {{ form.date.label_tag }}
+            {{ form.date }}
+        </div>
+        <div class="form-group mr-2">
+            {{ form.period.label_tag }}
+            {{ form.period }}
+        </div>
+        <button type="submit" class="btn btn-primary">조회</button>
+    </form>
+
+    {% if aggregated_data2 %}
+        <h2>Total Count</h2>
+        <ul class="list-group">
+            <li class="list-group-item"> 하품(Yawn): {{ aggregated_data2.total_yawn }}</li>
+            <li class="list-group-item"> 졸음(Sleepy): {{ aggregated_data2.total_sleepy }}</li>
+            <li class="list-group-item"> 좌측 시선(Gaze) 3sec: {{ aggregated_data2.total_gaze_left }}</li>
+            <li class="list-group-item"> 우측 시선(Gaze) 3sec: {{ aggregated_data2.total_gaze_right }}</li>
+            <li class="list-group-item"> 하단 시선(Gaze) 3sec: {{ aggregated_data2.total_gaze_down_long }}</li>
+            <li class="list-group-item"> 하단 시선(Gaze): {{ aggregated_data2.total_gaze_down }}</li>
+            <li class="list-group-item"> 정자세(pose): {{ aggregated_data2.total_pose_good }}</li>
+            <li class="list-group-item"> 구부정한 자세(pose): {{ aggregated_data2.total_pose_bad }}</li>
+        </ul>
+    <br>
+        <h2>Bar Chart(50분)</h2>
+<br>
+    <div class="container">
+    <div class="row">
+        <!-- 졸음 그래프 -->
+        <div class="col">
+            <canvas id="sleep-chart"></canvas>
+        </div>
+        <!-- 시선 그래프 -->
+        <div class="col">
+            <canvas id="gaze-chart"></canvas>
+        </div>
+        <!-- 포즈 그래프 -->
+        <div class="col">
+            <canvas id="pose-chart"></canvas>
+        </div>
+    </div>
+</div>
+    <br>
+            <h2>Line Chart(5분)</h2>
+<br>
+    <div class="container">
+        <!-- 졸음 그래프 -->
+            <canvas id="sleep-chart-line" width="100" height="50"></canvas>
+
+        <!-- 시선 그래프 -->
+            <canvas id="gaze-chart-line" width="100" height="50"></canvas>
+
+        <!-- 포즈 그래프 -->
+            <canvas id="pose-chart-line" width="100" height="50"></canvas>
+    </div>
+</div>
+<br>
+            <h2>Donut Chart(50분)</h2>
+<br>
+        <div class="container">
+
+    <canvas id="donut-chart"></canvas>
+
+
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+        // 졸음 그래프
+        new Chart(document.getElementById("sleep-chart"), {
+            type: 'bar',
+            data: {
+                labels: ["하품","졸음"],
+                datasets: [
+                    {
+                        label: 'Sleepy&Yawn Count',
+                        backgroundColor: ["#3e95cd", "#cd763e"],
+                        data: [{{ aggregated_data2.total_yawn }}, {{ aggregated_data2.total_sleepy }}]
+                    }
+                ]
+            },
+            options: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Sleepy Behavior'
+                }
+            }
+        });
+
+        // 시선 그래프
+        new Chart(document.getElementById("gaze-chart"), {
+            type: 'bar',
+            data: {
+                labels: ["좌측 시선(3초)", "우측 시선(3초)", "하단 시선(3초)", "하단 시선(횟수)"],
+                datasets: [
+                    {
+                        label: 'Gaze Count',
+                        backgroundColor: ["#8e5ea2","#3cba9f","#e8c3b9","#c45850"],
+                        data: [
+                            {{ aggregated_data2.total_gaze_left }},
+                            {{ aggregated_data2.total_gaze_right }},
+                            {{ aggregated_data2.total_gaze_down_long }},
+                            {{ aggregated_data2.total_gaze_down }}
+                        ]
+                    }
+                ]
+            },
+            options: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Gaze Behavior'
+                }
+            }
+        });
+
+        // 포즈 그래프
+        new Chart(document.getElementById("pose-chart"), {
+            type: 'bar',
+            data: {
+                labels: ["바른 자세", "구부정한 자세"],
+                datasets: [
+                    {
+                        label: 'Pose Count',
+                        backgroundColor: ["#F7464A","#46BFBD"],
+                        data: [
+                            {{ aggregated_data2.total_pose_good }},
+                            {{ aggregated_data2.total_pose_bad }}
+                        ]
+                    }
+                ]
+            },
+            options: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Pose Behavior'
+                }
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+    // 졸음
+    new Chart(document.getElementById("sleep-chart-line"), {
+        type: 'line',
+        data: {
+            labels: [{% for time_label in aggregated_data.time_labels %}"{{ time_label }}", {% endfor %}],
+            datasets: [{
+                data: [{% for yawn in aggregated_data.total_yawn %}{{ yawn }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                label: "하품",
+                borderColor: "#3e95cd",
+                fill: false
+            }, {
+                data: [{% for sleep in aggregated_data.total_sleepy %}{{ sleep }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                label: "졸음",
+                borderColor: "#cd763e",
+                fill: false
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Yawn and Sleep Count (per 5 minutes)'
+            }
+        }
+    });
+
+    // 시선
+    new Chart(document.getElementById("gaze-chart-line"), {
+        type: 'line',
+        data: {
+            labels: [{% for time_label in aggregated_data.time_labels %}"{{ time_label }}", {% endfor %}],
+            datasets: [{
+                data: [{% for gaze_left in aggregated_data.total_gaze_left %}{{ gaze_left }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                label: "좌측 시선(3초)",
+                borderColor: "#8e5ea2",
+                fill: false
+            }, {
+                data: [{% for gaze_right in aggregated_data.total_gaze_right %}{{ gaze_right }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                label: "우측 시선(3초)",
+                borderColor: "#3cba9f",
+                fill: false
+            }, {
+                data: [{% for gaze_down in aggregated_data.total_gaze_down %}{{ gaze_down }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                label: "하단 시선(3초)",
+                borderColor: "#e8c3b9",
+                fill: false
+            }, {
+                data: [{% for gaze_down_long in aggregated_data.total_gaze_down_long %}{{ gaze_down_long }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                label: "하단 시선(횟수)",
+                borderColor: "#c45850",
+                fill: false
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Gaze Count (per 5 minutes)'
+            }
+        }
+    });
+
+    // 포즈
+    new Chart(document.getElementById("pose-chart-line"), {
+        type: 'line',
+        data: {
+            labels: [{% for time_label in aggregated_data.time_labels %}"{{ time_label }}", {% endfor %}],
+            datasets: [{
+                data: [{% for pose_good in aggregated_data.total_pose_good %}{{ pose_good }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                label: "바른 자세",
+                borderColor: "#F7464A",
+                fill: false
+            }, {
+                data: [{% for pose_bad in aggregated_data.total_pose_bad %}{{ pose_bad }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                label: "구부정한 자세",
+                borderColor: "#46BFBD",
+                fill: false
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Pose Count (per 5 minutes)'
+            }
+        }
+        });
+    });
+
+
+    // 도넛 차트 데이터
+        var donutData = {
+            labels: ["하품", "졸음", "좌측 시선(3초)", "우측 시선(3초)", "하단 시선(3초)", "구부정한 자세"],
+            datasets: [{
+                label: '횟수',
+                data: [{{ aggregated_data2.total_yawn }},
+                        {{ aggregated_data2.total_sleepy }},
+                        {{ aggregated_data2.total_gaze_left }},
+                        {{ aggregated_data2.total_gaze_right }},
+                        {{ aggregated_data2.total_gaze_down_long }},
+                        {{ aggregated_data2.total_pose_bad }}],
+
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',   // 졸음
+                    'rgba(255, 99, 132, 0.2)',   // 하품
+                    'rgba(255, 206, 86, 0.2)',   // 좌측 시선
+                    'rgba(255, 206, 86, 0.2)',   // 우측 시선
+                    'rgba(255, 206, 86, 0.2)',  // 하단 시선(3초)
+                    'rgba(54, 162, 235, 1)'    // 구부정한 자세
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 0.2)',   // 졸음
+                    'rgba(255, 99, 132, 0.2)',   // 하품
+                    'rgba(255, 206, 86, 0.2)',   // 좌측 시선
+                    'rgba(255, 206, 86, 0.2)',   // 우측 시선
+                    'rgba(255, 206, 86, 0.2)',  // 하단 시선(3초)
+                    'rgba(54, 162, 235, 1)'    // 구부정한 자세
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // 도넛 차트 옵션
+        var donutOptions = {
+            cutout: '80%', // 중앙에 구멍의 크기
+            responsive: true,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+            },
+            legend: {
+                position: 'bottom'
+            }
+        };
+
+        // 도넛 차트 생성
+        var ctx = document.getElementById('donut-chart').getContext('2d');
+        var donutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: donutData,
+            options: donutOptions
+        });
+</script>
+
+    {% endif %}
+{% endblock %}

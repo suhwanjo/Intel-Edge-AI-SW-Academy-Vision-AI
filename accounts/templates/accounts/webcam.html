@@ -1,17 +1,14 @@
 {% extends 'blog/base.html' %}
 
 {% block content %}
-  <div style="display: flex; justify-content: space-between; align-items: center; height: 100vh;">
-    <div style="width: 45%; text-align: center; margin-right: 50%;">
+  <div style="display: flex; justify-content: center; align-items: center; height: calc(100vh - 200px);">
+    <div style="text-align: center;">
       <h1>Web Cam</h1>
       <div id="webcam-container" style="margin-top: 20px;">
         <img id="webcam-image" src="{% url 'webcam_feed' %}" alt="Webcam Feed">
+        <br>
         <button id="stop-webcam-btn">Stop Webcam</button>
       </div>
-    </div>
-    <div style="width: 45%; text-align: center;">
-      <h1>Dash Board</h1>
-      <!-- 여기에 다른 내용을 추가하세요 -->
     </div>
   </div>
 
