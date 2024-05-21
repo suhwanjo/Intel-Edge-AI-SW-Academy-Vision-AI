@@ -17,7 +17,7 @@
         </div>
         <button type="submit" class="btn btn-primary">조회</button>
     </form>
-
+<br>
     {% if aggregated_data2 %}
         <h2>Total Count</h2>
         <ul class="list-group">
@@ -31,26 +31,26 @@
             <li class="list-group-item"> 구부정한 자세(pose): {{ aggregated_data2.total_pose_bad }}</li>
         </ul>
     <br>
-        <h2>Bar Chart(50분)</h2>
+        <h2>Bar Chart(50min)</h2>
 <br>
     <div class="container">
     <div class="row">
         <!-- 졸음 그래프 -->
         <div class="col">
-            <canvas id="sleep-chart"></canvas>
+            <canvas id="sleep-chart" width="420" height="350"></canvas>
         </div>
         <!-- 시선 그래프 -->
         <div class="col">
-            <canvas id="gaze-chart"></canvas>
+            <canvas id="gaze-chart" width="420" height="350"></canvas>
         </div>
         <!-- 포즈 그래프 -->
         <div class="col">
-            <canvas id="pose-chart"></canvas>
+            <canvas id="pose-chart" width="420" height="350"></canvas>
         </div>
     </div>
 </div>
     <br>
-            <h2>Line Chart(5분)</h2>
+            <h2>Line Chart(5min)</h2>
 <br>
     <div class="container">
         <!-- 졸음 그래프 -->
@@ -64,7 +64,7 @@
     </div>
 </div>
 <br>
-            <h2>Donut Chart(50분)</h2>
+            <h2>Donut Chart(50min)</h2>
 <br>
         <div class="container">
 

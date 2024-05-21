@@ -1,73 +1,18 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>집피티</title>
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{% static 'bootstrap/bootstrap.min.css' %}">
-
-    <!-- Custom CSS -->
-    <style>
-        body {
-            font-family: Arial, sans-serif; /* 변경 가능한 폰트로 설정 */
-        }
-        /* 네비게이션 스타일 */
-        .navbar {
-            background-color: #007bff; /* 네비게이션 바 색상 */
-        }
-        .navbar-brand {
-            font-size: 1.5rem; /* 로고 텍스트 크기 */
-            font-weight: bold; /* 로고 텍스트 굵기 */
-        }
-        .navbar-nav .nav-item .nav-link {
-            color: #ffffff; /* 네비게이션 링크 색상 */
-            margin-right: 10px; /* 링크 간격 */
-        }
-        .navbar-nav .nav-item .nav-link:hover {
-            color: #f8f9fa; /* 호버 시 링크 색상 */
-        }
-    </style>
-</head>
-<body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}">
-            수업 태도/자세 모니터링
-        </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'board' %}">홈</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">소개</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">서비스</a>
-                </li>
-                {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard' %}">마이페이지</a>
-                </li>
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}">마이페이지</a>
-                </li>
-                {% endif %}
-            </ul>
+<div id="header-wrapper">
+    <header id="header" class="container">
+        <!-- Logo -->
+        <div id="logo">
+            <h1><a href="{% url 'home'%}" class="icon regular fa-moon">집PT</a></h1>
         </div>
-    </div>
-</nav>
 
-<!-- Bootstrap JS -->
-<script src="{% static 'bootstrap/bootstrap.bundle.min.js' %}"></script>
-
-</body>
-</html>
+        <!-- Nav -->
+        <nav id="nav">
+            <ul>
+                <li class="current"><a href="#">홈</a></li>
+                <li><a href="intro.html">소개</a></li>
+                <li><a href="service.html">서비스</a></li>
+                <li><a href="{% url 'dashboard'%}">마이페이지</a></li>
+            </ul>
+        </nav>
+    </header>
+</div>

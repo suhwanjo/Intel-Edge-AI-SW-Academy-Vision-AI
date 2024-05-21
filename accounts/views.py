@@ -34,7 +34,7 @@ class VideoCamera(object):
         self.drawing_spec = self.mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
         # 졸음, 하품 관련 변수
-        self.EAR_THRESHOLD = 0.25
+        self.EAR_THRESHOLD = 0.2
         self.MAR_THRESHOLD = 0.5
 
         self.eye_closed_long_count = 0
@@ -68,7 +68,7 @@ class VideoCamera(object):
 
         self.last_save_time = pytime.time()
         self.last_pose_inference_time = pytime.time()
-        self.save_interval = 20  # 저장 및 자세 추정 주기
+        self.save_interval = 300  # 저장 및 자세 추정 주기
         self.request = request
 
         self.jungjasae_count = 0
@@ -184,7 +184,7 @@ class VideoCamera(object):
 
                 self.prev_eye_closed = self.eye_closed
 
-                if self.eye_closed_count >= self.THRESHOLD_FRAMES * 2:
+                if self.eye_closed_count >= self.THRESHOLD_FRAMES * 3:
                     self.eye_closed_long_count += 1
                     self.eye_closed_count = 0
                 # 졸음 시각화
@@ -306,7 +306,7 @@ class VideoCamera(object):
 
                             2)
         # 임계값마다 포즈 추론
-        if current_time - self.last_pose_inference_time >= (self.save_interval / 2):
+        if current_time - self.last_pose_inference_time >= 5:#(self.save_interval / 5):
             results = self.model(image, conf=0.7)
             #image = results[0].plot()
             if results[0].keypoints is not None:
@@ -502,7 +502,9 @@ def signup(request):
             return redirect('/')
     else:
         form = SignupForm()
-    return render(request, 'accounts/signup.html', {'form': form})
+    return render(request,
+                  'accounts/signup.html',
+                  {'form': form})
 
 
 def login(request):
